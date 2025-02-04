@@ -26,6 +26,7 @@ The **Library Management System** is a simple application built using **ASP.NET 
 - **Frontend:** Razor Pages (or MVC Views)
 - **API Documentation:** Swagger (OpenAPI)
 - **Dependency Injection:** Built-in DI in ASP.NET Core
+- **Background Jobs:** Hangfire (for scheduling and managing background tasks)
 
 ## Architecture
 The project adheres to the principles of **Clean Architecture**, ensuring separation of concerns and testability:
