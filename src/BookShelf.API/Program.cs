@@ -1,7 +1,7 @@
-
 using BookShelf.Core.Interfaces;
 using BookShelf.Core.UseCases;
 using BookShelf.Infrastructure.Data;
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -46,9 +46,23 @@ builder.Services.AddScoped<ReturnBook>();
 builder.Services.AddScoped<ViewUserDetails>();
 
 
+
+builder.Services.AddHangfire(config =>
+    config.UseSqlServerStorage(builder.Configuration.GetConnectionString("Database")));
+
+builder.Services.AddHangfireServer();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+
+app.UseHangfireDashboard();
+app.MapHangfireDashboard();
+
+RecurringJob.AddOrUpdate<NotifyLateReturns>(
+    "notify-late-returns",
+    job => job.Execute(),
+    Cron.Daily);
 
 if (app.Environment.IsDevelopment())
 {

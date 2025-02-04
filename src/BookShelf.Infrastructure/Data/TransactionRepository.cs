@@ -32,7 +32,9 @@ public class TransactionRepository : ITransactionRepository
     {
         var today = DateTime.UtcNow;
         return await _context.Transactions
-            .Where(t => t.DueDate < today && t.ReturnedDate == null)
+            .Include(t => t.Book)
+            .Include(t => t.User)
+            .Where(t => t.BorrowedDate.AddDays(14) < today && t.ReturnedDate == null)
             .ToListAsync();
     }
 
