@@ -39,6 +39,55 @@ The project adheres to the principles of **Clean Architecture**, ensuring separa
 3. **Presentation**:
    - User interface, controllers, and API endpoints.
 
+
+## Background Jobs (Hangfire)
+The system uses **Hangfire** to run background jobs, such as notifying users of overdue books.
+
+### **Overdue Book Notifications**
+A scheduled job runs **daily** to check for overdue books and send email notifications.
+
+#### **Job Registration**
+The job is registered in `Program.cs` as follows:
+```csharp
+RecurringJob.AddOrUpdate<NotifyLateReturns>(
+    "notify-late-returns",
+    job => job.ExecuteAsync(CancellationToken.None),
+    Cron.Daily);
+```
+This ensures that the `NotifyLateReturns` use case is executed once every 24 hours.
+
+#### **Implementation of NotifyLateReturns**
+The `NotifyLateReturns` class retrieves overdue transactions and sends email notifications to users:
+```csharp
+public class NotifyLateReturns
+{
+    private readonly ITransactionRepository _transactionRepository;
+    private readonly IEmailService _emailService;
+
+    public NotifyLateReturns(ITransactionRepository transactionRepository, IEmailService emailService)
+    {
+        _transactionRepository = transactionRepository;
+        _emailService = emailService;
+    }
+
+    public async Task ExecuteAsync(CancellationToken cancellationToken)
+    {
+        var lateTransactions = await _transactionRepository.GetLateTransactionsAsync();
+        foreach (var transaction in lateTransactions)
+        {
+            await _emailService.SendOverdueNotification(transaction.UserId, transaction.BookId);
+        }
+    }
+}
+```
+
+### **Running Hangfire Dashboard**
+To monitor and manage jobs, Hangfire provides a dashboard. Start the application and navigate to:
+```
+http://localhost:5000/hangfire
+```
+
+
 ### Directory Structure
 ```
 src/
